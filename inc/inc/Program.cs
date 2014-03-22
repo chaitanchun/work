@@ -10,6 +10,7 @@ namespace inc
     {
         static void Main(string[] args)
         {
+
         }
     }
 }
