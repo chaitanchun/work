@@ -11,14 +11,9 @@ namespace inc
 {
     class Program
     {
-        String user = "";
-        String workspace = "";
-        String password = "";
-        String idfile = "";
-        String verfile = "";
-        String maxKeyword = "";
+        String idfile = @"";
+        String verfile = @"";
         String uri = "";
-        String minKeywork = "";
         VersionControlServer vcServer = null;
         Workspace ws = null;
         String maxNum;
@@ -30,20 +25,37 @@ namespace inc
             minNum = min;
         }
 
+        public void Run()
+        {
+            if(!ConnectTFS())
+            {
+                Console.WriteLine("Connect TFS is fail!");
+                return;
+            }
+
+            if(!ChangeBuildID(idfile) || !ChangeBuildID(verfile))
+            {
+                Console.WriteLine("Change files is fail!");
+                return;
+            }
+
+            CheckIn();
+        }
+
         public bool ConnectTFS()
         {
             TfsTeamProjectCollection tpc = new TfsTeamProjectCollection(new Uri(uri));
             vcServer = tpc.GetService<VersionControlServer>();
             if (vcServer == null)
                 return false;
-            WorkspaceInfo wsInfo = Workstation.Current.GetLocalWorkspaceInfo(vcServer, @"workspacename", @"UserName");
+            WorkspaceInfo wsInfo = Workstation.Current.GetLocalWorkspaceInfo(vcServer, @"workspacename", @"chait");
             if(wsInfo == null)
                 return false;
             ws = vcServer.GetWorkspace(wsInfo);
             return true;
         }
 
-        public bool ChangeBuildID(String file)
+        public bool ChangeBuildID(String file, String keyword)
         {
             //checkout fils
             try
@@ -51,8 +63,18 @@ namespace inc
                 if (ws.PendEdit(file) != 1)
                     return false;
 
-                //Edit file based on current id
+                String[] readText = File.ReadAllLines(file);
+                for (int i = 0; i < readText.Length; i++ )
+                {
+                    if (readText[i].Contains(keyword))
+                    {
+                        //change id
+                        readText[i] = keyword + "    " + keyword;
+                    }
 
+                }
+
+                File.WriteAllLines(file, readText);
             }
             catch (IOException e)
             {
@@ -76,9 +98,14 @@ namespace inc
             var pendingChanges = ws.GetPendingChanges();
             int changesetForChange = ws.CheckIn(pendingChanges, "Change Build ID to " + id);
             if (changesetForChange > 0)
+            {
                 Console.WriteLine("Checked in changeset {0}", changesetForChange);
+            }
             else
+            {
                 Console.WriteLine("Submit change is fail!");
+                ws.Undo(pendingChanges);
+            }
         }
 
         static void Main(string[] args)
@@ -112,12 +139,7 @@ namespace inc
             }
 
             Program program = new Program(args[0], args[1]);
-            if( !program.ConnectTFS() )
-            {
-                Console.WriteLine("Connect TFS is fail!");
-                return;
-            }
-
+            program.Run();
 
             return;
         }
