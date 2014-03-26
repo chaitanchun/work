@@ -11,9 +11,18 @@ namespace inc
 {
     class Program
     {
-        String idfile = @"";
-        String verfile = @"";
-        String uri = "";
+        String uri = "http://tfs.autodesk.com:8080/tfs/AcadCollection";
+        String idMaxKeywork = "ACADV_BLDMAJOR";
+        String idMinKeywork = "ACADV_BLDMINOR";
+        String verMaxKeywork = "HEIDI_BLDMAJOR_VERSION";
+        String verMinKeywork = "HEIDI_BLDMINOR_VERSION";
+        
+        //The following setting need to based on your current environment!
+        String idfile = @"F:\Maestro\U\components\global\src\objectdbx\inc\_idver.h";  /*Local file path*/
+        String verfile = @"F:\Maestro\U\components\global\src\heidi\source\heidi\_version.h";  /*Local file path*/
+        String userName = @"chait";          /* Current user name*/
+        String workspaceName = @"SINSGH128SDGL_M_U";            /* Current workspace */
+        
         VersionControlServer vcServer = null;
         Workspace ws = null;
         String maxNum;
@@ -29,11 +38,11 @@ namespace inc
         {
             if(!ConnectTFS())
             {
-                Console.WriteLine("Connect TFS is fail!");
+                Console.WriteLine("Connect to TFS is fail!");
                 return;
             }
 
-            if(!ChangeBuildID(idfile) || !ChangeBuildID(verfile))
+            if(!ChangeBuildID(idfile, idMaxKeywork, idMinKeywork) || !ChangeBuildID(verfile, verMaxKeywork, verMinKeywork))
             {
                 Console.WriteLine("Change files is fail!");
                 return;
@@ -48,14 +57,14 @@ namespace inc
             vcServer = tpc.GetService<VersionControlServer>();
             if (vcServer == null)
                 return false;
-            WorkspaceInfo wsInfo = Workstation.Current.GetLocalWorkspaceInfo(vcServer, @"workspacename", @"chait");
+            WorkspaceInfo wsInfo = Workstation.Current.GetLocalWorkspaceInfo(vcServer, workspaceName, userName);
             if(wsInfo == null)
                 return false;
             ws = vcServer.GetWorkspace(wsInfo);
             return true;
         }
 
-        public bool ChangeBuildID(String file, String keyword)
+        public bool ChangeBuildID(String file, String maxKeyword, String minKeyword)
         {
             //checkout fils
             try
@@ -64,12 +73,22 @@ namespace inc
                     return false;
 
                 String[] readText = File.ReadAllLines(file);
+                bool isMaxChanged = false;
                 for (int i = 0; i < readText.Length; i++ )
                 {
-                    if (readText[i].Contains(keyword))
+                    if (readText[i].Contains(maxKeyword))
                     {
                         //change id
-                        readText[i] = keyword + "    " + keyword;
+                        readText[i] = "#define " + maxKeyword + "  " + maxNum;
+                        isMaxChanged = true;
+                        continue;
+                    }
+
+                    if (readText[i].Contains(minKeyword))
+                    {
+                        readText[i] = "#define " + minKeyword + "  " + minNum;
+                        if (isMaxChanged)
+                            break;
                     }
 
                 }
@@ -89,21 +108,21 @@ namespace inc
             String id = "M0";
             if (maxNum.Length == 1)
                 id += "0";
-            id += maxNum + "U0";
-            if (minNum.Length == 1)
-                id += "0";
-            id += minNum;
+            id += maxNum + "." + minNum;
             
             // Get the pending change, and check in the new revision.
-            var pendingChanges = ws.GetPendingChanges();
-            int changesetForChange = ws.CheckIn(pendingChanges, "Change Build ID to " + id);
+            String[] items = new String[2];
+            items[0] = idfile;
+            items[1] = verfile;
+            var pendingChanges = ws.GetPendingChanges(items);
+            int changesetForChange = ws.CheckIn(pendingChanges, "Increment Build ID to " + id);
             if (changesetForChange > 0)
             {
                 Console.WriteLine("Checked in changeset {0}", changesetForChange);
             }
             else
             {
-                Console.WriteLine("Submit change is fail!");
+                Console.WriteLine("Submit changelist is fail!");
                 ws.Undo(pendingChanges);
             }
         }
@@ -132,9 +151,9 @@ namespace inc
                 Console.WriteLine("The parameter is overflow.");
                 return;
             }
-            if(maxVer <= 0 || maxVer > 100 || minVer < 0 || minVer > 20)
+            if(maxVer <= 0 || maxVer > 100 || minVer < 0 || minVer > 300)
             {
-                Console.WriteLine("maxVer <= 0 || maxVer > 100 || minVer < 0 || minVer > 20");
+                Console.WriteLine("maxVer <= 0 || maxVer > 100 || minVer < 0 || minVer > 300");
                 return;
             }
 
