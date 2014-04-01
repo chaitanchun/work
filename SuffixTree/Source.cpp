@@ -18,13 +18,15 @@ public:
     Node* next;
 };
 
+typedef unordered_map<string, Edge*> Edges;
+
 class Node{
 public:
     Node(){
         suffixLink = nullptr;
     }
     Node* suffixLink;
-    unordered_map<char, Edge*> edges;
+    Edges edges;
 
 
 };
@@ -35,15 +37,15 @@ int main()
     cin >> str;
     Node* root = new Node();
     Node* currentNode = root;
-    for (size_t i = 0; i < str.length; i++)
+    for (size_t i = 0; i < str.length(); i++)
     {
         
-        unordered_map<char, Edge*>::const_iterator it = currentNode->edges.find(str.at(i));
+        Edges::const_iterator it = currentNode->edges.find(str.substr(i, 1));
         if (it == currentNode->edges.end())
         {
             //Don't have edge start from current char
             Node* newNode = new Node();
-            Edge* newEdge = new Edge(i, -1, newNode);
+            currentNode->edges.insert(make_pair<string, Edge*>(str.substr(i, 1), (new Edge(i, -1, newNode))));
 
         }
         else
