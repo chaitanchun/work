@@ -1,6 +1,5 @@
 #include <iostream>
 #include <string>
-#include <vector>
 #include <unordered_map>
 using namespace std;
 
@@ -31,16 +30,21 @@ public:
 
 };
 
+
 int main()
 {
 
     cin >> str;
     Node* root = new Node();
     Node* currentNode = root;
+    int remainder = 1;
+    Node* activeNode = root;
+    int activeLength = 0;
+    string activeEdge = nullptr;
     for (size_t i = 0; i < str.length(); i++)
     {
-        
-        Edges::const_iterator it = currentNode->edges.find(str.substr(i, 1));
+        string currentChar = str.substr(i, 1);
+        Edges::const_iterator it = currentNode->edges.find(currentChar);
         if (it == currentNode->edges.end())
         {
             //Don't have edge start from current char
@@ -50,6 +54,9 @@ int main()
         }
         else
         {
+            activeLength++;
+            activeEdge = currentChar;
+            remainder++;
 
         }
 
