@@ -18,10 +18,10 @@ namespace inc
         String verMinKeywork = "HEIDI_BLDMINOR_VERSION";
         
         //The following setting need to based on your current environment!
-        String idfile = @"F:\Maestro\U\components\global\src\objectdbx\inc\_idver.h";  /*Local file path*/
-        String verfile = @"F:\Maestro\U\components\global\src\heidi\source\heidi\_version.h";  /*Local file path*/
+        String idfile = @"D:\Maestro\U\components\global\src\objectdbx\inc\_idver.h";  /*Local file path*/
+        String verfile = @"D:\Maestro\U\components\global\src\heidi\source\heidi\_version.h";  /*Local file path*/
         String userName = @"chait";          /* Current user name*/
-        String workspaceName = @"SINSGH128SDGL_M_U";            /* Current workspace */
+        String workspaceName = @"SIN2XMGF22_M_U";            /* Current workspace */
         
         VersionControlServer vcServer = null;
         Workspace ws = null;
